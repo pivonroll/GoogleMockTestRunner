@@ -17,14 +17,18 @@ SOURCES += main.cpp\
     jtftestparser.cpp \
     jtftestscanner.cpp \
     jtftestscannerworker.cpp \
-    testresultsparser.cpp
+    testresultsparser.cpp \
+    asyncprocessrunner.cpp \
+    processrunner.cpp
 
 HEADERS  += mainwindow.h \
     jtftestparser.h \
     jtftestscanner.h \
     jtftestscannerworker.h \
     common.h \
-    testresultsparser.h
+    testresultsparser.h \
+    asyncprocessrunner.h \
+    processrunner.h
 
 FORMS    += mainwindow.ui
 
@@ -42,9 +46,21 @@ DESTDIR_PATH = $$DESTDIR
 win32:QT_PATH_FOR_COPY ~= s,/,\\,g
 win32:DESTDIR_PATH ~= s,/,\\,g
 
-QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icuin52.dll $$DESTDIR_PATH &&
-QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icuuc52.dll $$DESTDIR_PATH &&
-QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icudt52.dll $$DESTDIR_PATH &&
+!exists($$QT_PATH_FOR_COPY\..\bin\icuin53.dll) {
+    message(File not found: $$QT_PATH_FOR_COPY\..\bin\icuin53.dll)
+}
+
+!exists($$QT_PATH_FOR_COPY\..\bin\icuuc53.dll) {
+    message(File not found: $$QT_PATH_FOR_COPY\..\bin\icuin53.dll)
+}
+
+!exists($$QT_PATH_FOR_COPY\..\bin\icudt53.dll) {
+    message(File not found: $$QT_PATH_FOR_COPY\..\bin\icuin53.dll)
+}
+
+QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icuin53.dll $$DESTDIR_PATH &&
+QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icuuc53.dll $$DESTDIR_PATH &&
+QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icudt53.dll $$DESTDIR_PATH &&
 
 CONFIG (debug,debug|release){
     QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\Qt5Cored.dll $$DESTDIR_PATH &&
