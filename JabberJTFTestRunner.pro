@@ -18,8 +18,8 @@ SOURCES += main.cpp\
     jtftestscanner.cpp \
     jtftestscannerworker.cpp \
     testresultsparser.cpp \
-    asyncprocessrunner.cpp \
-    processrunner.cpp
+    jtftestrunworker.cpp \
+    jtftestrunner.cpp
 
 HEADERS  += mainwindow.h \
     jtftestparser.h \
@@ -27,8 +27,8 @@ HEADERS  += mainwindow.h \
     jtftestscannerworker.h \
     common.h \
     testresultsparser.h \
-    asyncprocessrunner.h \
-    processrunner.h
+    jtftestrunworker.h \
+    jtftestrunner.h
 
 FORMS    += mainwindow.ui
 
@@ -46,32 +46,46 @@ DESTDIR_PATH = $$DESTDIR
 win32:QT_PATH_FOR_COPY ~= s,/,\\,g
 win32:DESTDIR_PATH ~= s,/,\\,g
 
-!exists($$QT_PATH_FOR_COPY\..\bin\icuin53.dll) {
-    message(File not found: $$QT_PATH_FOR_COPY\..\bin\icuin53.dll)
-}
+mkcommands += $$DESTDIR/platforms
+win32:mkcommands ~= s,/,\\,g
+mkpath($$mkcommands)
 
-!exists($$QT_PATH_FOR_COPY\..\bin\icuuc53.dll) {
-    message(File not found: $$QT_PATH_FOR_COPY\..\bin\icuin53.dll)
+!exists($$QT_PATH_FOR_COPY\..\bin\icudt53.dll){
+    message(File does not exist: $$QT_PATH_FOR_COPY\..\bin\icudt53.dll)
 }
-
-!exists($$QT_PATH_FOR_COPY\..\bin\icudt53.dll) {
-    message(File not found: $$QT_PATH_FOR_COPY\..\bin\icuin53.dll)
-}
-
-QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icuin53.dll $$DESTDIR_PATH &&
-QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icuuc53.dll $$DESTDIR_PATH &&
 QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icudt53.dll $$DESTDIR_PATH &&
 
+!exists($$QT_PATH_FOR_COPY\..\bin\icuin53.dll){
+    message(File does not exist: $$QT_PATH_FOR_COPY\..\bin\icuin53.dll)
+}
+QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icuin53.dll $$DESTDIR_PATH &&
+
+!exists($$QT_PATH_FOR_COPY\..\bin\icuuc53.dll){
+    message(File does not exist: $$QT_PATH_FOR_COPY\..\bin\icuuc53.dll)
+}
+QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\icuuc53.dll $$DESTDIR_PATH &&
+
 CONFIG (debug,debug|release){
+
+    !exists($$DESTDIR_PATH\platforms\qwindowsd.dll){
+        QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\plugins\platforms\qwindowsd.dll $$DESTDIR_PATH\platforms &&
+    }
     QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\Qt5Cored.dll $$DESTDIR_PATH &&
     QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\Qt5Guid.dll $$DESTDIR_PATH &&
-    QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\Qt5Widgetsd.dll $$DESTDIR_PATH
+    QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\Qt5Widgetsd.dll $$DESTDIR_PATH &&
+    QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\libGLESv2d.dll $$DESTDIR_PATH &&
+    QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\libEGLd.dll $$DESTDIR_PATH
 }
 
 CONFIG (release,debug|release){
+    !exists($$DESTDIR_PATH\platforms\qwindows.dll){
+        QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\plugins\platforms\qwindows.dll $$DESTDIR_PATH\platforms &&
+    }
     QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\Qt5Core.dll $$DESTDIR_PATH &&
     QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\Qt5Gui.dll $$DESTDIR_PATH &&
-    QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\Qt5Widgets.dll $$DESTDIR_PATH
+    QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\Qt5Widgets.dll $$DESTDIR_PATH &&
+    QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\libGLESv2.dll $$DESTDIR_PATH &&
+    QMAKE_POST_LINK += $$QMAKE_COPY $$QT_PATH_FOR_COPY\..\bin\libEGL.dll $$DESTDIR_PATH
 }
 
 

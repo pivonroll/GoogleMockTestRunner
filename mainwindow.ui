@@ -183,7 +183,19 @@
      </layout>
     </item>
     <item>
-     <widget class="QTextEdit" name="m_outputTextEdit"/>
+     <widget class="QSplitter" name="splitter_2">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QSplitter" name="splitter">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <widget class="QTextEdit" name="m_outputTextEdit"/>
+       <widget class="QTextEdit" name="m_errorLinesTextEdit"/>
+      </widget>
+      <widget class="QTextEdit" name="m_rawOutputTextEdit"/>
+     </widget>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_4">

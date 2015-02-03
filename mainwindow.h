@@ -30,6 +30,9 @@ private slots:
     void onMenuSaveClicked();
     void onRemovePushButtonClicked();
 
+    void onJTFTestCompleted(const QString result);
+    void onJTFTestError();
+
 private:
     void initialize();
     void loadSettings();
@@ -43,6 +46,7 @@ private:
     void disableWidgets(bool disable);
     QMessageBox::StandardButton showExecutableNotFoundMessage(const QString &canonicalExecutablePath,
                                                               bool offerRemoveOption = false);
+    void checkForEnvironmentVariable(const QString &envVar);
 
     Ui::MainWindow *ui;
 

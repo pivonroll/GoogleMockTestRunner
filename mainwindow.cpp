@@ -2,14 +2,17 @@
 #include "ui_mainwindow.h"
 
 #include "testresultsparser.h"
+#include "jtftestrunworker.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QProcess>
 #include <QSettings>
 
 const char ALL_TESTS_STRING[] = "All";
 const char EXECUTABLE_SETTINGS[] = "ExecutableSettings";
 const char EXECUTABLE_SETTINGS_LIST[] = "ExecutableSettingsList";
+const char JTF_ENABLE_PICTURES_ENV_VAR[] = "JTF_ENABLE_PICTURES";
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,6 +31,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     createConnections();
     loadSettings();
+
+    checkForEnvironmentVariable(QLatin1String(JTF_ENABLE_PICTURES_ENV_VAR));
 }
 
 MainWindow::~MainWindow()
@@ -112,6 +117,32 @@ void MainWindow::onRemovePushButtonClicked()
         if (ui->m_selectJTFExeComboBox->count() == 0)
             disableWidgets(true);
     }
+}
+
+void MainWindow::onJTFTestCompleted(const QString result)
+{
+    TestResultsParser parser;
+
+    TestResult testResult = parser.parse(result);
+    ui->m_outputTextEdit->append(testResult.toString());
+    ui->m_rawOutputTextEdit->setText(result);
+    ui->m_errorLinesTextEdit->append(testResult.errorLinesToString());
+
+    QString styleSheet;
+
+    if (testResult.m_isPassed)
+        styleSheet.append("QFrame \n { \n border-image: url(:/icons/Green); \n }");
+    else
+        styleSheet.append("QFrame \n { \n border-image: url(:/icons/Red); \n}");
+
+    ui->m_testIndicatorIconFrame->setStyleSheet(styleSheet);
+    ui->m_runPushButton->setEnabled(true);
+}
+
+void MainWindow::onJTFTestError()
+{
+    ui->m_outputTextEdit->append(QString("Error while executing!"));
+    ui->m_runPushButton->setEnabled(true);
 }
 
 void MainWindow::initialize()
@@ -199,7 +230,11 @@ void MainWindow::runJTFTest(const QString &canonicalExePath, const QString &test
     }
 
     ui->m_outputTextEdit->clear();
+    ui->m_rawOutputTextEdit->clear();
+    ui->m_errorLinesTextEdit->clear();
     ui->m_outputTextEdit->setEnabled(true);
+    ui->m_rawOutputTextEdit->setEnabled(true);
+    ui->m_errorLinesTextEdit->setEnabled(true);
 
     if (canonicalExePath.isEmpty() || test.isEmpty())
         return;
@@ -209,31 +244,13 @@ void MainWindow::runJTFTest(const QString &canonicalExePath, const QString &test
     if (test != QString(ALL_TESTS_STRING))
         arguments << QString("--gtest_filter=%1*").arg(test);
 
+    ui->m_runPushButton->setEnabled(false);
     ui->m_outputTextEdit->append(QString("Executing: %1 %2\n").arg(canonicalExePath).arg(arguments.join("")));
-    QProcess jtfTestExeProcess;
-    jtfTestExeProcess.setProcessChannelMode(QProcess::MergedChannels);
-    jtfTestExeProcess.start(canonicalExePath, arguments);
 
-    if (jtfTestExeProcess.waitForFinished()) {
-        QString output(jtfTestExeProcess.readAll());
-
-        TestResultsParser parser;
-
-        TestResult testResult = parser.parse(output);
-        ui->m_outputTextEdit->append(testResult.toString());
-
-        QString styleSheet;
-
-        if (testResult.m_isPassed)
-            styleSheet.append("QFrame \n { \n border-image: url(:/icons/Green); \n }");
-        else
-            styleSheet.append("QFrame \n { \n border-image: url(:/icons/Red); \n}");
-
-        ui->m_testIndicatorIconFrame->setStyleSheet(styleSheet);
-    }
-
-    else
-        ui->m_outputTextEdit->append(QString("Error while executing!"));
+    JTFTestRunWorker *worker = new JTFTestRunWorker(canonicalExePath, arguments);
+    connect(worker, SIGNAL(error()), this, SLOT(onJTFTestError()));
+    connect(worker, SIGNAL(finished(QString)), this, SLOT(onJTFTestCompleted(QString)));
+    worker->start();
 }
 
 void MainWindow::startScanForAvailableJTFTests(const QString &canonicalJTFTestExePath)
@@ -260,6 +277,8 @@ void MainWindow::disableWidgets(bool disable)
     ui->m_removePushButton->setDisabled(disable);
     ui->m_jtfTestChooseComboBox->setDisabled(disable);
     ui->m_outputTextEdit->setDisabled(disable);
+    ui->m_rawOutputTextEdit->setDisabled(disable);
+    ui->m_errorLinesTextEdit->setDisabled(disable);
     ui->m_recheckForTestsPushButton->setDisabled(disable);
     ui->m_runPushButton->setDisabled(disable);
     ui->m_selectJTFExeComboBox->setDisabled(disable);
@@ -277,4 +296,17 @@ QMessageBox::StandardButton MainWindow::showExecutableNotFoundMessage(const QStr
                                 tr("Error!"),
                                 tr("Executable(s) not found:\n") + canonicalExecutablePath,
                                 QMessageBox::StandardButton::Yes, QMessageBox::StandardButton::Close));
+}
+
+
+void MainWindow::checkForEnvironmentVariable(const QString &envVar)
+{
+    QStringList envVars = QProcess::systemEnvironment();
+
+    foreach (QString str, envVars) {
+        if (str.contains(envVar))
+            return;
+    }
+
+    QMessageBox::warning(this, tr("Check for system variable %1").arg(envVar), tr("System variable %1 is not set.").arg(envVar));
 }
