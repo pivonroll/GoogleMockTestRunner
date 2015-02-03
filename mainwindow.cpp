@@ -3,15 +3,20 @@
 
 #include "testresultsparser.h"
 #include "jtftestrunworker.h"
+#include "addenvvartotrack.h"
+#include "listofenvironmentvarstotrack.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QProcess>
 #include <QSettings>
+#include <QProcessEnvironment>
 
 const char ALL_TESTS_STRING[] = "All";
 const char EXECUTABLE_SETTINGS[] = "ExecutableSettings";
 const char EXECUTABLE_SETTINGS_LIST[] = "ExecutableSettingsList";
+const char ENVIRONMENT_VARIBLES_TO_TRACK[] = "EnvironmentVariablesToTrack";
+const char ENVIRONMENT_VARIBLES[] = "EnvironmentVariables";
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -24,6 +29,12 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowTitle("Gmock Test Runner");
 
     initialize();
+
+    m_envVarToTrack = new QAction(tr("Add Environment Variable to Track"), this);
+    ui->menuFile->addAction(m_envVarToTrack);
+
+    m_listOfEnvVarsToTrack = new QAction(tr("List of Environment Variables to Track"), this);
+    ui->menuFile->addAction(m_listOfEnvVarsToTrack);
 
     m_saveAction = new QAction(tr("Save"), this);
     ui->menuFile->addAction(m_saveAction);
@@ -116,6 +127,35 @@ void MainWindow::onRemovePushButtonClicked()
     }
 }
 
+void MainWindow::onAddEnvVarToTrack()
+{
+    AddEnvVarToTrack *dialog = new AddEnvVarToTrack(this);
+
+    if (dialog->exec() == QDialog::Accepted) {
+        QString varToTrack = dialog->varibleToTrack();
+        if (!varToTrack.isEmpty())
+            m_environmentVariablesToTrack.insert(varToTrack, readEnvVar(varToTrack));
+
+    }
+
+    dialog->deleteLater();
+}
+
+void MainWindow::onListEnvVarToTrack()
+{
+    ListOfEnvironmentVarsToTrack *dialog = new ListOfEnvironmentVarsToTrack(this);
+
+    QMapIterator<QString, QVariant> it(m_environmentVariablesToTrack);
+
+    while (it.hasNext()) {
+        it.next();
+        dialog->addRow(it.key(), it.value().toString());
+    }
+
+    dialog->exec(); // blocks
+    dialog->deleteLater();
+}
+
 void MainWindow::onJTFTestCompleted(const QString result)
 {
     TestResultsParser parser;
@@ -156,6 +196,10 @@ void MainWindow::loadSettings()
     QStringList executablesNotFound;
     QStringList executablesFound;
 
+    settings.beginGroup(ENVIRONMENT_VARIBLES_TO_TRACK);
+    m_environmentVariablesToTrack = settings.value(ENVIRONMENT_VARIBLES).toMap();
+    settings.endGroup();
+
     settings.beginGroup(EXECUTABLE_SETTINGS);
     executableList = settings.value(EXECUTABLE_SETTINGS_LIST).toStringList();
     settings.endGroup();
@@ -194,6 +238,11 @@ void MainWindow::loadSettings()
 void MainWindow::saveSettings()
 {
     QSettings settings;
+
+    settings.beginGroup(ENVIRONMENT_VARIBLES_TO_TRACK);
+    settings.setValue(ENVIRONMENT_VARIBLES, QVariant(m_environmentVariablesToTrack));
+    settings.endGroup();
+
     QStringList executableList;
 
     for (int i = 0;  i < ui->m_selectJTFExeComboBox->count(); ++i)
@@ -215,6 +264,8 @@ void MainWindow::createConnections()
     connect(&m_jtftestScanner, SIGNAL(finished(QString,QList<JtfTest>)), this, SLOT(onJTFTestScanCompleted(QString, QList<JtfTest>)));
     connect(m_saveAction, SIGNAL(triggered()), this, SLOT(onMenuSaveClicked()));
     connect(ui->m_removePushButton, SIGNAL(clicked()), this, SLOT(onRemovePushButtonClicked()));
+    connect(m_envVarToTrack, SIGNAL(triggered()), this, SLOT(onAddEnvVarToTrack()));
+    connect(m_listOfEnvVarsToTrack, SIGNAL(triggered()), this, SLOT(onListEnvVarToTrack()));
 }
 
 void MainWindow::runJTFTest(const QString &canonicalExePath, const QString &test)
@@ -298,12 +349,11 @@ QMessageBox::StandardButton MainWindow::showExecutableNotFoundMessage(const QStr
 
 void MainWindow::checkForEnvironmentVariable(const QString &envVar)
 {
-    QStringList envVars = QProcess::systemEnvironment();
+    if (!QProcessEnvironment::systemEnvironment().contains(envVar))
+        QMessageBox::warning(this, tr("Check for system variable %1").arg(envVar), tr("System variable %1 is not set.").arg(envVar));
+}
 
-    foreach (QString str, envVars) {
-        if (str.contains(envVar))
-            return;
-    }
-
-    QMessageBox::warning(this, tr("Check for system variable %1").arg(envVar), tr("System variable %1 is not set.").arg(envVar));
+QString MainWindow::readEnvVar(const QString &envVar) const
+{
+    return QProcessEnvironment::systemEnvironment().value(envVar);
 }

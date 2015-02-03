@@ -29,6 +29,8 @@ private slots:
     void onExeLineEditTextChanged(QString text);
     void onMenuSaveClicked();
     void onRemovePushButtonClicked();
+    void onAddEnvVarToTrack();
+    void onListEnvVarToTrack();
 
     void onJTFTestCompleted(const QString result);
     void onJTFTestError();
@@ -47,11 +49,16 @@ private:
     QMessageBox::StandardButton showExecutableNotFoundMessage(const QString &canonicalExecutablePath,
                                                               bool offerRemoveOption = false);
     void checkForEnvironmentVariable(const QString &envVar);
+    QString readEnvVar(const QString &envVar) const;
 
     Ui::MainWindow *ui;
 
+    QMap<QString, QVariant> m_environmentVariablesToTrack;
+
     JTFTestScannerWorker m_jtftestScanner;
     QAction *m_saveAction;
+    QAction *m_envVarToTrack;
+    QAction *m_listOfEnvVarsToTrack;
 };
 
 #endif // MAINWINDOW_H

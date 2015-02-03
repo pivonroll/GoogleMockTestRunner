@@ -19,7 +19,9 @@ SOURCES += main.cpp\
     jtftestscannerworker.cpp \
     testresultsparser.cpp \
     jtftestrunworker.cpp \
-    jtftestrunner.cpp
+    jtftestrunner.cpp \
+    addenvvartotrack.cpp \
+    listofenvironmentvarstotrack.cpp
 
 HEADERS  += mainwindow.h \
     jtftestparser.h \
@@ -28,9 +30,13 @@ HEADERS  += mainwindow.h \
     common.h \
     testresultsparser.h \
     jtftestrunworker.h \
-    jtftestrunner.h
+    jtftestrunner.h \
+    addenvvartotrack.h \
+    listofenvironmentvarstotrack.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    addenvvartotrack.ui \
+    listofenvironmentvarstotrack.ui
 
 RESOURCES += \
     Resources.qrc
