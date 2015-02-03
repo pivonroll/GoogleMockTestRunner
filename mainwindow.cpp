@@ -12,17 +12,16 @@
 const char ALL_TESTS_STRING[] = "All";
 const char EXECUTABLE_SETTINGS[] = "ExecutableSettings";
 const char EXECUTABLE_SETTINGS_LIST[] = "ExecutableSettingsList";
-const char JTF_ENABLE_PICTURES_ENV_VAR[] = "JTF_ENABLE_PICTURES";
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    QApplication::setOrganizationName("Cisco");
-    QApplication::setOrganizationDomain("@cisco.com");
-    QApplication::setApplicationName("Jabber JTF Test Runner");
-    setWindowTitle("Jabber JTF Test Runner");
+    QApplication::setOrganizationName("My");
+    QApplication::setOrganizationDomain("@none_important.who.cares");
+    QApplication::setApplicationName("Gmock Test Runner");
+    setWindowTitle("Gmock Test Runner");
 
     initialize();
 
@@ -31,8 +30,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     createConnections();
     loadSettings();
-
-    checkForEnvironmentVariable(QLatin1String(JTF_ENABLE_PICTURES_ENV_VAR));
 }
 
 MainWindow::~MainWindow()
