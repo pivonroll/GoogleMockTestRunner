@@ -48,7 +48,7 @@ private:
     void disableWidgets(bool disable);
     QMessageBox::StandardButton showExecutableNotFoundMessage(const QString &canonicalExecutablePath,
                                                               bool offerRemoveOption = false);
-    void checkForEnvironmentVariable(const QString &envVar);
+    void checkForEnvironmentVariables();
     QString readEnvVar(const QString &envVar) const;
 
     Ui::MainWindow *ui;

@@ -41,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     createConnections();
     loadSettings();
+
+    checkForEnvironmentVariables();
 }
 
 MainWindow::~MainWindow()
@@ -347,10 +349,21 @@ QMessageBox::StandardButton MainWindow::showExecutableNotFoundMessage(const QStr
 }
 
 
-void MainWindow::checkForEnvironmentVariable(const QString &envVar)
+void MainWindow::checkForEnvironmentVariables()
 {
-    if (!QProcessEnvironment::systemEnvironment().contains(envVar))
-        QMessageBox::warning(this, tr("Check for system variable %1").arg(envVar), tr("System variable %1 is not set.").arg(envVar));
+    QMapIterator<QString, QVariant> it(m_environmentVariablesToTrack);
+
+    QStringList variablesError;
+
+    while (it.hasNext()) {
+        it.next();
+        if (!QProcessEnvironment::systemEnvironment().contains(it.key()))
+            variablesError << it.key();
+
+    }
+
+    if (variablesError.size() > 0)
+        QMessageBox::warning(this, tr("Check for system variables: \n%1").arg(variablesError.join(", ")), tr("System variables:\n %1 \n are not set.").arg(variablesError.join(", ")));
 }
 
 QString MainWindow::readEnvVar(const QString &envVar) const
